@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -25,6 +25,7 @@ if _passphrase is None:
     )
 os.environ["PULUMI_CONFIG_PASSPHRASE"] = _passphrase
 
+from app.utils.auth import get_current_user
 from app.routes.aws_vpn import router as aws_vpn_router
 from app.routes.azure_vpn import router as azure_vpn_router
 from app.routes.aws_lb import router as aws_lb_router
@@ -51,12 +52,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(region_router)
-app.include_router(aws_vpn_router)
-app.include_router(location_router)
-app.include_router(azure_vpn_router)
-app.include_router(aws_lb_router)
-app.include_router(vpn_orchestrator_router)
+app.include_router(region_router, dependencies=[Depends(get_current_user)])
+app.include_router(aws_vpn_router, dependencies=[Depends(get_current_user)])
+app.include_router(location_router, dependencies=[Depends(get_current_user)])
+app.include_router(azure_vpn_router, dependencies=[Depends(get_current_user)])
+app.include_router(aws_lb_router, dependencies=[Depends(get_current_user)])
+app.include_router(vpn_orchestrator_router, dependencies=[Depends(get_current_user)])
 
 
 
